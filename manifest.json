@@ -1,0 +1,11 @@
+{
+    "name": "Youtube to Spotify Playlist Converter",
+    "version": "1.0.0",
+    "description": "Testing",
+    "manifest_version": 3,
+    "author": "Bevin Huynh",
+    "action": {
+        "default_popup": "index.html",
+        "default_title": ""
+    }
+}

@@ -5,6 +5,8 @@ from requests import post, get
 import json
 from flask import Flask, request, redirect
 import urllib.parse
+import webbrowser
+import threading
 from youtube_to_spotify import CreatePlaylist
 
 
@@ -18,6 +20,9 @@ user_id = os.getenv("USER_ID")
 scopes = "playlist-modify-public playlist-modify-private"
 
 app = Flask(__name__)
+
+def open_browser():
+    webbrowser.open("http://localhost:1410")
 
 
 @app.route("/")
@@ -76,6 +81,7 @@ def get_token(auth_code):
 
 
 if __name__ == "__main__":
-    app.run(host='0.0.0.0', debug=True, port=1410)
+    threading.Timer(1, open_browser).start() 
+    app.run(host='0.0.0.0', port=1410)
 
 
