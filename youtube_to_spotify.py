@@ -42,16 +42,25 @@ class CreatePlaylist:
         return youtube_client
     
     def get_liked_videos(self):
-        request = self.youtube_client.videos().list(
-            part="snippet,contentDetails,statistics",
-            myRating="like",
-            maxResults = 6
+        validPlaylist = False
+        playlist_name = input("Enter playlist link (Example: https://www.youtube.com/playlist?list=playlistid): ")
+        # if playlist_name[12:19] != "youtube" or playlist_name[24:37] != "playlist?list":
+
+        get_id = playlist_name.split("=")
+
+        request = self.youtube_client.playlistItems().list(
+            part = "snippet,contentDetails",
+            playlistId = get_id[1]
         )
+
         response = request.execute()
 
+
         for item in response["items"]:
+
             video_title = item["snippet"]["title"]
-            youtube_url = "https://www.youtube.com/watch?v={}".format(item["id"])
+            
+            youtube_url = "https://www.youtube.com/watch?v={}".format(item["contentDetails"]["videoId"])
 
             ydl = youtube_dl.YoutubeDL()
 
@@ -60,6 +69,7 @@ class CreatePlaylist:
                 video = ydl.extract_info(youtube_url, download=False)
                 song_name = video["track"]
                 artist = video["artist"]
+
 
                 self.all_song_info[video_title]={
                     "youtube_url":youtube_url,
