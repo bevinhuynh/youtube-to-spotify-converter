@@ -1,14 +1,3 @@
- #Youtube to Spotify Converter
-    #a. Follow the YouTube tutorial first.
-    #b. Change instead of liked videos, use created playlists instead
-    #c. Convert to Google Extension
-
-#Step 1: Log into YouTube
-#Step 2: Get Liked Videos
-#Step 3: Create a New Playlist
-#Step 4: Search for song
-#Step 5: Add song into the new Playlisy
-
 import json
 import requests
 import os
@@ -16,7 +5,6 @@ import google_auth_oauthlib.flow
 import googleapiclient.discovery
 import googleapiclient.errors
 import yt_dlp as youtube_dl
-# from info import client_id, get_auth_header, get_token, user_id
 
 class CreatePlaylist:
     
@@ -43,13 +31,20 @@ class CreatePlaylist:
     
     def get_liked_videos(self):
         validPlaylist = False
-        playlist_name = input("Enter playlist link (Example: https://www.youtube.com/playlist?list=playlistid): ")
-        # if playlist_name[12:19] != "youtube" or playlist_name[24:37] != "playlist?list":
+        check_youtube = "youtube.com"
+        check_youtube_playlist = "youtube.com/playlist?list="
+        while validPlaylist == False:
+            playlist_name = input("Enter playlist link (Example: https://www.youtube.com/playlist?list=playlistid): ")
+            if check_youtube not in playlist_name and check_youtube_playlist not in playlist_name:
+                print("Invalid link.")
+            else:
+                break
 
         get_id = playlist_name.split("=")
 
         request = self.youtube_client.playlistItems().list(
             part = "snippet,contentDetails",
+            maxResults=50,
             playlistId = get_id[1]
         )
 
