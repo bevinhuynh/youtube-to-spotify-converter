@@ -5,6 +5,8 @@ import google_auth_oauthlib.flow
 import googleapiclient.discovery
 import googleapiclient.errors
 import yt_dlp as youtube_dl
+import urllib.parse
+import re
 
 class CreatePlaylist:
     
@@ -13,6 +15,11 @@ class CreatePlaylist:
         self.token = token
         self.youtube_client = self.get_youtube_client()
         self.all_song_info = {}
+
+    def normalize_song_title(self, title):
+        # Remove 'feat.' and other common feature indicators from the title
+        return re.sub(r'\s*\(feat\..*\)', '', title, flags=re.IGNORECASE).strip()
+    
 
     def get_youtube_client(self):
         os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "1"
@@ -104,10 +111,15 @@ class CreatePlaylist:
         return response_json["id"]
 
     def get_spotify_url(self, song_name, artist):
-        query = "https://api.spotify.com/v1/search?query=track%3a{}+artist%3a{}&type=track&offset=0&limit=20".format(
-            song_name,
-            artist
-        )
+        song_name_encoded = urllib.parse.quote(song_name)
+        artist_encoded = urllib.parse.quote(artist)
+
+        query = f"https://api.spotify.com/v1/search?query=track:{song_name_encoded}+artist:{artist_encoded}&type=track&offset=0&limit=20"
+
+        # query = "https://api.spotify.com/v1/search?query=track%3a{}+artist%3a{}&type=track&offset=0&limit=20".format(
+        #     song_name,
+        #     artist
+        # )
         response = requests.get(
             query,
             headers={
@@ -117,9 +129,27 @@ class CreatePlaylist:
         )
         response_json = response.json()
         songs = response_json["tracks"]["items"]
-        uri = songs[0]["uri"]
+        explicit_songs = []
+        for song in songs:
+            if song['explicit'] == True:
+                explicit_songs.append(song)
+        if len(explicit_songs) > 0:
+            songs = explicit_songs
+        for song in songs:
+            # print(song['explicit'])
+            spotify_song_name = self.normalize_song_title(song['name'])
+            normalized_song_name = self.normalize_song_title(song_name)
 
-        return uri
+            spotify_artists = [a['name'].lower() for a in song['artists']]
+            spotify_artists = (', ').join(spotify_artists)
+
+            if spotify_artists == artist.lower() and normalized_song_name.lower() == spotify_song_name.lower():
+                return song["uri"]
+        
+
+
+
+        return None
 
     def add_song_to_playlist(self):
         self.get_liked_videos()
@@ -127,6 +157,8 @@ class CreatePlaylist:
         uri = []
         for song,info in self.all_song_info.items():
             uri.append(info["spotify_url"])
+
+        uri = [uri for uri in uri if uri is not None]
         
         playlist_id = self.create_playlist()
 
