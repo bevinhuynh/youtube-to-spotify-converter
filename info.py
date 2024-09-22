@@ -4,13 +4,15 @@ import base64
 from requests import post, get
 import json
 from flask import Flask, request, redirect
+from flask_cors import CORS
 import urllib.parse
 import webbrowser
-import threading
 from youtube_to_spotify import CreatePlaylist
 
 
 load_dotenv()
+
+
 
 AUTH_URL = "https://accounts.spotify.com/authorize"
 redirect_uri = "http://localhost:1410/callback/"
@@ -18,14 +20,20 @@ client_id = os.getenv("CLIENT_ID")
 client_secret = os.getenv("CLIENT_SECRET")
 user_id = os.getenv("USER_ID")
 scopes = "playlist-modify-public playlist-modify-private"
+token = ""
+create_playlist = ""
 
 app = Flask(__name__)
+CORS(app)
 
+
+@app.route('/open-browser', methods=['GET'])
 def open_browser():
+    print("lol")
     webbrowser.open("http://localhost:1410")
+    return "Opened."
 
-
-@app.route("/")
+@app.route("/", methods=["GET"])
 def login():
     params = {
         'client_id': client_id,
@@ -42,11 +50,9 @@ def login():
 def callback():
     # Get the authorization code from the callback URL
     auth_code = request.args.get("code")
-
+    global token
     if auth_code:
         token = get_token(auth_code)
-        create_playlist = CreatePlaylist(user_id, token)
-        result = create_playlist.add_song_to_playlist()
         if token:
             return f"Authoriztion Successful, you may now close this window."
         else:
@@ -67,21 +73,29 @@ def get_token(auth_code):
 
     data = {
         "grant_type": "authorization_code",
-        "code": auth_code,  # This is the code you get from the callback
+        "code": auth_code,
         "redirect_uri": redirect_uri
     }
-
-
-
     result = post(url, headers=headers, data=data)
     json_result = json.loads(result.content)
 
     token = json_result["access_token"]
     return token
 
+@app.route("/youtube-auth", methods=["GET"])
+def youtube_auth():
+    global create_playlist
+    create_playlist = CreatePlaylist(user_id, token)
+    return create_playlist
 
-if __name__ == "__main__":
-    threading.Timer(1, open_browser).start() 
+@app.route("/start-convert", methods=["GET"])
+def create_playlist():
+    # create_playlist = CreatePlaylist(user_id, token)
+    result = create_playlist.add_song_to_playlist()
+    return result
+
+
+if __name__ == "__main__":    
     app.run(host='0.0.0.0', port=1410)
 
 

@@ -69,6 +69,11 @@ class CreatePlaylist:
             try:
 
                 video = ydl.extract_info(youtube_url, download=False)
+             
+                # while True:
+                #     x = input()
+                #     if x == "y":
+                #         break
                 song_name = video["track"]
                 artist = video["artist"]
 
@@ -177,3 +182,4 @@ class CreatePlaylist:
         return response_json
 
 
+# if __name__ == "__main__":

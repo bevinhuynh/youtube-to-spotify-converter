@@ -1,2 +1,2 @@
 # youtube-to-spotify-converter
-Program that automates the conversion of songs from the Liked Videos sections of a YouTube Account into a Spotify Playlist.
+Full Stack program that automates the conversion of songs from the playlists of a YouTube Account into a Spotify Playlist.

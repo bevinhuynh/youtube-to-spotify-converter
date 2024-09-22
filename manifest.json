@@ -7,5 +7,9 @@
     "action": {
         "default_popup": "index.html",
         "default_title": ""
-    }
+    },
+    "permissions": [],
+    "content_security_policy": {
+        "extension_pages": "script-src 'self'; object-src 'self'; frame-src https://accounts.spotify.com https://accounts.google.com"
+  }
 }

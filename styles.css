@@ -1,0 +1,24 @@
+.title{
+    font-size: 18px;
+    display: flex;
+    justify-content: center;
+}
+
+.subtitle {
+    font-size: 15px;
+    display: flex;
+    justify-content: center;
+}
+
+.input-box {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px; /* Adds space between input and button */
+}
+
+.convert-button {
+    display:flex;
+    justify-content: center;
+    margin-top: 10px;
+}
