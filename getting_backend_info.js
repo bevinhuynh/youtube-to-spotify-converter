@@ -1,5 +1,9 @@
 const redirect_uri = 'http://localhost:1410/open-browser';
 
+let data = {
+    playlist_url: ''
+}
+
 async function handle_authorization() {
     try {
         const response = await fetch('http://localhost:1410/open-browser', {
@@ -20,16 +24,30 @@ async function handle_authorization() {
 
 
 async function handle_playlist_creation() {
-    try {
-        const response = await fetch('http://localhost:1410/start-convert')
-        if (response.ok){
-            let header = document.getElementById("header")
-            header.innerHTML = "lol";
+    let input_data = document.getElementById("input-box");
+    let input_value = input_data.value;
+    let subtitle = document.getElementById("subtitle")
+    if (input_value.includes("youtube.com/playlist?list=")) {
+        data.playlist_url = input_value;
+        try {
+            const response = await fetch('http://localhost:1410/start-convert', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data.playlist_url)
+            })
+            if (response.ok){
+                subtitle = "Please paste in a valid YouTube playlist link."
+            }
+        }
+        catch {
+            subtitle.innerHTML = "Error occured with playlist conversion.";
         }
     }
-    catch {
-        let header = document.getElementById("header")
-        header.innerHTML = "lol";
+    else {
+        let subtitle = document.getElementById("subtitle")
+        subtitle.innerHTML = "Invalid playlist link.";
     }
 }
 
@@ -42,6 +60,7 @@ async function handle_youtube_authorization() {
     })
 
 }
+
 
 document.getElementById("youtube-auth").addEventListener("click", function(){
     handle_youtube_authorization();

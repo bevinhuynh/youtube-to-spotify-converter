@@ -13,6 +13,7 @@ class CreatePlaylist:
     def __init__(self, user_id, token):
         self.user_id = user_id
         self.token = token
+        self.playlist_link = ""
         self.youtube_client = self.get_youtube_client()
         self.all_song_info = {}
 
@@ -37,17 +38,17 @@ class CreatePlaylist:
         return youtube_client
     
     def get_liked_videos(self):
-        validPlaylist = False
-        check_youtube = "youtube.com"
-        check_youtube_playlist = "youtube.com/playlist?list="
-        while validPlaylist == False:
-            playlist_name = input("Enter playlist link (Example: https://www.youtube.com/playlist?list=playlistid): ")
-            if check_youtube not in playlist_name and check_youtube_playlist not in playlist_name:
-                print("Invalid link.")
-            else:
-                break
-
-        get_id = playlist_name.split("=")
+        # validPlaylist = False
+        # check_youtube = "youtube.com"
+        # check_youtube_playlist = "youtube.com/playlist?list="
+        # while validPlaylist == False:
+        #     playlist_name = input("Enter playlist link (Example: https://www.youtube.com/playlist?list=playlistid): ")
+        #     if check_youtube not in playlist_name and check_youtube_playlist not in playlist_name:
+        #         print("Invalid link.")
+        #     else:
+        #         break
+        get_id = self.playlist_link.split("=")
+        # get_id = self.playlist_link.split("=")
 
         request = self.youtube_client.playlistItems().list(
             part = "snippet,contentDetails",
@@ -70,10 +71,7 @@ class CreatePlaylist:
 
                 video = ydl.extract_info(youtube_url, download=False)
              
-                # while True:
-                #     x = input()
-                #     if x == "y":
-                #         break
+
                 song_name = video["track"]
                 artist = video["artist"]
 
@@ -93,11 +91,11 @@ class CreatePlaylist:
     
 
     def create_playlist(self): 
-        playlist_name = input("Enter playlist name: ")
-        playlist_description = input("Enter playlist description: ")
+        # playlist_name = input("Enter playlist name: ")
+        # playlist_description = input("Enter playlist description: ")
         request_body = json.dumps({
-            "name": playlist_name,
-            "description": playlist_description,
+            "name": "New Playlist",
+            "description": "Converted Youtube Playlist",
             "public": False
         })
 
