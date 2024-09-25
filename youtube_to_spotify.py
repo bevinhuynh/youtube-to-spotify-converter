@@ -7,6 +7,7 @@ import googleapiclient.errors
 import yt_dlp as youtube_dl
 import urllib.parse
 import re
+from thefuzz import fuzz, process
 
 class CreatePlaylist:
     
@@ -62,7 +63,7 @@ class CreatePlaylist:
 
                 video = ydl.extract_info(youtube_url, download=False)
              
-
+    
                 song_name = video["track"]
                 artist = video["artist"]
 
@@ -121,21 +122,31 @@ class CreatePlaylist:
         for song in songs:
             if song['explicit'] == True:
                 explicit_songs.append(song)
+
         if len(explicit_songs) > 0:
             songs = explicit_songs
-        for song in songs:
-            spotify_song_name = self.normalize_song_title(song['name'])
-            normalized_song_name = self.normalize_song_title(song_name)
-
-            spotify_artists = [a['name'].lower() for a in song['artists']]
-            spotify_artists = (', ').join(spotify_artists)
-
-            if spotify_artists == artist.lower() and normalized_song_name.lower() == spotify_song_name.lower():
-                return song["uri"]
         
+        spotify_songs = []
+        # for song in songs: #organizes found spotify songs by Title - Artist Name
+        #     completed_name = song["name"] + " - " + song["artists"][0]["name"]
+        #     spotify_songs.append(completed_name)
+        # print(spotify_songs)
+        full_song_name = song_name + " - " + artist
+        song_ratios = {}
+        for song in songs:
+            completed_name = song["name"] + " - " + song["artists"][0]["name"]
+            ratio = fuzz.ratio(full_song_name, completed_name)
+            song_ratios[song["uri"]] = ratio
+            # spotify_song_name = self.normalize_song_title(song['name'])
+            # normalized_song_name = self.normalize_song_title(song_name)
 
+            # spotify_artists = [a['name'].lower() for a in song['artists']]
+            # spotify_artists = (', ').join(spotify_artists)
 
-
+            # if spotify_artists == artist.lower() and normalized_song_name.lower() == spotify_song_name.lower():
+            #     return song["uri"]
+        if len(song_ratios) > 0:
+            return max(song_ratios, key=song_ratios.get)
         return None
 
     def add_song_to_playlist(self):
