@@ -93,7 +93,7 @@ def convert_playlist():
     data = request.json
     create_playlist.playlist_link = data
     result = create_playlist.add_song_to_playlist()
-    return "Converted playlist"
+    return "Converted playlist!"
 
 
 if __name__ == "__main__":    

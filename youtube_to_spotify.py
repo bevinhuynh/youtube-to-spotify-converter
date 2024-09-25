@@ -38,17 +38,8 @@ class CreatePlaylist:
         return youtube_client
     
     def get_liked_videos(self):
-        # validPlaylist = False
-        # check_youtube = "youtube.com"
-        # check_youtube_playlist = "youtube.com/playlist?list="
-        # while validPlaylist == False:
-        #     playlist_name = input("Enter playlist link (Example: https://www.youtube.com/playlist?list=playlistid): ")
-        #     if check_youtube not in playlist_name and check_youtube_playlist not in playlist_name:
-        #         print("Invalid link.")
-        #     else:
-        #         break
+        self.all_song_info = {}
         get_id = self.playlist_link.split("=")
-        # get_id = self.playlist_link.split("=")
 
         request = self.youtube_client.playlistItems().list(
             part = "snippet,contentDetails",
@@ -91,8 +82,6 @@ class CreatePlaylist:
     
 
     def create_playlist(self): 
-        # playlist_name = input("Enter playlist name: ")
-        # playlist_description = input("Enter playlist description: ")
         request_body = json.dumps({
             "name": "New Playlist",
             "description": "Converted Youtube Playlist",
@@ -119,10 +108,6 @@ class CreatePlaylist:
 
         query = f"https://api.spotify.com/v1/search?query=track:{song_name_encoded}+artist:{artist_encoded}&type=track&offset=0&limit=20"
 
-        # query = "https://api.spotify.com/v1/search?query=track%3a{}+artist%3a{}&type=track&offset=0&limit=20".format(
-        #     song_name,
-        #     artist
-        # )
         response = requests.get(
             query,
             headers={
@@ -139,7 +124,6 @@ class CreatePlaylist:
         if len(explicit_songs) > 0:
             songs = explicit_songs
         for song in songs:
-            # print(song['explicit'])
             spotify_song_name = self.normalize_song_title(song['name'])
             normalized_song_name = self.normalize_song_title(song_name)
 
@@ -180,4 +164,3 @@ class CreatePlaylist:
         return response_json
 
 
-# if __name__ == "__main__":

@@ -30,6 +30,7 @@ async function handle_playlist_creation() {
     if (input_value.includes("youtube.com/playlist?list=")) {
         data.playlist_url = input_value;
         try {
+            subtitle.textContent = "Please paste in a valid YouTube playlist link."
             const response = await fetch('http://localhost:1410/start-convert', {
                 method: 'POST',
                 headers: {
@@ -37,17 +38,14 @@ async function handle_playlist_creation() {
                 },
                 body: JSON.stringify(data.playlist_url)
             })
-            if (response.ok){
-                subtitle = "Please paste in a valid YouTube playlist link."
-            }
+
         }
         catch {
-            subtitle.innerHTML = "Error occured with playlist conversion.";
+            subtitle.textContent = "Error occured with playlist conversion.";
         }
     }
     else {
-        let subtitle = document.getElementById("subtitle")
-        subtitle.innerHTML = "Invalid playlist link.";
+        subtitle.textContent = "Invalid playlist link.";
     }
 }
 
