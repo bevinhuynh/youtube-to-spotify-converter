@@ -86,7 +86,7 @@ def get_token(auth_code):
 def youtube_auth():
     global create_playlist
     create_playlist = CreatePlaylist(user_id, token)
-    return "Authroized"
+    return "Authorized"
 
 @app.route("/start-convert", methods=["POST"])
 def convert_playlist():

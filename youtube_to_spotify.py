@@ -18,6 +18,12 @@ class CreatePlaylist:
         self.youtube_client = self.get_youtube_client()
         self.all_song_info = {}
 
+    def preprocess(self, string):
+        string = re.sub(r'\(.*?\)', '', string)
+        string = re.sub(r'[-&]', '', string)
+        string = string.strip()
+        return string
+
     def normalize_song_title(self, title):
         # Remove 'feat.' and other common feature indicators from the title
         return re.sub(r'\s*\(feat\..*\)', '', title, flags=re.IGNORECASE).strip()
@@ -63,9 +69,12 @@ class CreatePlaylist:
 
                 video = ydl.extract_info(youtube_url, download=False)
              
-    
-                song_name = video["track"]
-                artist = video["artist"]
+                try:
+                    song_name = video["track"]
+                    artist = video["artist"]
+                except KeyError:
+                    song_name = video["title"]
+                    artist = video["channel"]
 
 
                 self.all_song_info[video_title]={
@@ -104,21 +113,54 @@ class CreatePlaylist:
         return response_json["id"]
 
     def get_spotify_url(self, song_name, artist):
+
         song_name_encoded = urllib.parse.quote(song_name)
         artist_encoded = urllib.parse.quote(artist)
 
-        query = f"https://api.spotify.com/v1/search?query=track:{song_name_encoded}+artist:{artist_encoded}&type=track&offset=0&limit=20"
+        official_audio_tag = "(Official Audio)"
+        audio_tag = "(Audio)"
 
+        if official_audio_tag in song_name:
+            index = song_name.find(official_audio_tag)
+            song_name = song_name[0:index]
+        elif audio_tag in song_name:
+            index = song_name.find(audio_tag)
+            song_name = song_name[0:index]
+
+        search_url = 'https://api.spotify.com/v1/search'
+        query = f"https://api.spotify.com/v1/search?query=track:{song_name_encoded}+artist:{artist_encoded}&type=track&offset=0&limit=3"
         response = requests.get(
             query,
             headers={
                 "Content-Type":"application/json",
                 "Authorization":"Bearer {}".format(self.token)
-            }
+            },
         )
         response_json = response.json()
         songs = response_json["tracks"]["items"]
+        if len(songs) <= 0: #Specific Track not found, find tracks that match new query
+            query = f'{artist} {song_name}'
+
+            params = {
+                'q': query,      
+                'type': 'track',  
+                'limit': 3   
+            }
+
+            response = requests.get(
+                search_url,
+                headers={
+                    "Content-Type":"application/json",
+                    "Authorization":"Bearer {}".format(self.token)
+                },
+                params=params
+            ) 
+            response_json = response.json()
+            songs = response_json["tracks"]["items"]
+            
         explicit_songs = []
+
+
         for song in songs:
             if song['explicit'] == True:
                 explicit_songs.append(song)
@@ -126,27 +168,25 @@ class CreatePlaylist:
         if len(explicit_songs) > 0:
             songs = explicit_songs
         
-        spotify_songs = []
-        # for song in songs: #organizes found spotify songs by Title - Artist Name
-        #     completed_name = song["name"] + " - " + song["artists"][0]["name"]
-        #     spotify_songs.append(completed_name)
-        # print(spotify_songs)
         full_song_name = song_name + " - " + artist
         song_ratios = {}
+
         for song in songs:
+
             completed_name = song["name"] + " - " + song["artists"][0]["name"]
-            ratio = fuzz.ratio(full_song_name, completed_name)
+            print(completed_name)
+            ratio = fuzz.ratio(full_song_name , completed_name)
             song_ratios[song["uri"]] = ratio
-            # spotify_song_name = self.normalize_song_title(song['name'])
-            # normalized_song_name = self.normalize_song_title(song_name)
 
-            # spotify_artists = [a['name'].lower() for a in song['artists']]
-            # spotify_artists = (', ').join(spotify_artists)
+        print(song_ratios)
 
-            # if spotify_artists == artist.lower() and normalized_song_name.lower() == spotify_song_name.lower():
-            #     return song["uri"]
         if len(song_ratios) > 0:
-            return max(song_ratios, key=song_ratios.get)
+            max_key = max(song_ratios, key=song_ratios.get)
+            if song_ratios[max_key] == 100:
+                return max_key
+            else:
+                return list(song_ratios)[0]
+
         return None
 
     def add_song_to_playlist(self):
